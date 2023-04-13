@@ -1,0 +1,33 @@
+name: "Unit & Smoke Tests - mamba"
+on:
+  pull_request:
+    paths:
+      - test-example/**
+      
+  workflow_dispatch:
+
+defaults: #create default settings that apply to the entire workflow. can also set it on the job level or the step level
+  run:
+    shell: bash -el {0}  #The -e option causes the shell to exit immediately if any error occures. The -l disables pathname expansion (i.e., the expansion of wildcard characters like * and ?) in arguments to commands.
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Copy Repository Contents
+        uses: actions/checkout@main   
+   
+      - name: Install Conda environment with Micromamba
+        uses: mamba-org/provision-with-micromamba@main
+        with:
+          environment-file: test-example/conda-environment.yaml
+          environment-name: course
+          cache-env: true
+          cache-downloads: true
+          
+      - run: |
+          micromamba activate course
+          pip install -U pytest
+          pytest test-example/
+        env:
+          WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
